@@ -11,7 +11,7 @@ if (!/^(0x)?[0-9a-fA-F]{64}$/.test(privateKey)) {
     throw new Error('❌ Ключ должен содержать 64 hex-символа');
 }
 
-const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${pri>
+const formattedPrivateKey = privateKey.startsWith('0x') ? privateKey : `0x${privateKey}`;
 
 // Проверяем, что ключ валидный
 let account;
@@ -46,15 +46,15 @@ const web3 = new Web3(new Web3.providers.HttpProvider(BSC_RPC_URL));
 web3.eth.accounts.wallet.add(account);
 
 // Контракт
-const checkInContract = new web3.eth.Contract(CHECK_IN_ABI, CHECK_IN_CONTRACT_A>
+const checkInContract = new web3.eth.Contract(CHECK_IN_ABI, CHECK_IN_CONTRACT_ADDRESS);
 
 async function performCheckIn() {
     try {
         const gasPrice = await web3.eth.getGasPrice();
-        const gasEstimate = await checkInContract.methods.checkIn().estimateGas>
+        const gasEstimate = await checkInContract.methods.checkIn().estimateGas({
             from: account.address
         });
-        const nonce = await web3.eth.getTransactionCount(account.address, 'pend>
+        const nonce = await web3.eth.getTransactionCount(account.address, 'pending');
         
         const tx = {
             from: account.address,
@@ -67,7 +67,7 @@ async function performCheckIn() {
         };
 
         const signedTx = await account.signTransaction(tx);
-        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransa>
+        const receipt = await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
         
         console.log(`Check-in успешен! Tx hash: ${receipt.transactionHash}`);
         return receipt;
@@ -100,7 +100,7 @@ function scheduleNextCheckIn() {
     const nextRun = getNextDayRandomTime();
     const delay = nextRun.getTime() - Date.now();
     
-    console.log(`⏰ Следующий check-in запланирован на ${nextRun.toISOString()}>
+    console.log(`⏰ Следующий check-in запланирован на ${nextRun.toISOString()}`);
     
     // Очищаем предыдущий таймер, если был
     if (global.checkInTimer) {
@@ -123,6 +123,3 @@ function scheduleNextCheckIn() {
 
 console.log('🟢 Сервис автоматического check-in запущен');
 scheduleNextCheckIn();
-
-                                                                            
-                                                                            
